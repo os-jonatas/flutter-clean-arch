@@ -5,6 +5,7 @@ import 'package:nu_test/core/services/url_storage_service.dart';
 import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
 import 'package:nu_test/url_shortner/domain/usecases/get_url_saved_list_usecase.dart';
 import 'package:nu_test/url_shortner/domain/usecases/save_url_usecase.dart';
+import 'package:nu_test/url_shortner/presentation/url_shortner_view_model.dart';
 
 final getIt = GetIt.instance;
 
@@ -32,5 +33,12 @@ Future<void> setupInjection() async {
   );
   getIt.registerFactory<GetUrlSavedListUsecase>(
     () => GetUrlSavedListUsecase(getIt<UrlStorageService>()),
+  );
+
+  getIt.registerFactory<UrlShortnerViewModel>(
+    () => UrlShortnerViewModel(
+      getUrlSavedListUsecase: getIt<GetUrlSavedListUsecase>(),
+      saveUrlUsecase: getIt<SaveUrlUsecase>(),
+    ),
   );
 }

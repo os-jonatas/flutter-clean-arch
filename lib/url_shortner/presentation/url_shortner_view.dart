@@ -1,14 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:nu_test/core/di/injection.dart';
 import 'package:rx_notifier/rx_notifier.dart';
 import 'url_shortner_view_model.dart';
 
-class UrlShortnerView extends UrlShortnerViewModel {
+class UrlShortnerView extends StatefulWidget {
+  final UrlShortnerViewModel? injectedViewModel;
+  const UrlShortnerView({super.key, this.injectedViewModel});
+
+  @override
+  State<UrlShortnerView> createState() => _UrlShortnerViewState();
+}
+
+class _UrlShortnerViewState extends State<UrlShortnerView> {
+  late final UrlShortnerViewModel viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    viewModel = widget.injectedViewModel ?? getIt<UrlShortnerViewModel>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      viewModel.fetchSavedUrls();
+    });
+  }
+
+  @override
+  void dispose() {
+    viewModel.dispose();
+    super.dispose();
+  }
+
+  Future<void> onCopyToClipboard(String text) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('short URL copied to clipboard!')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
         child: Form(
-          key: formKey,
+          key: viewModel.formKey,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -21,7 +56,7 @@ class UrlShortnerView extends UrlShortnerViewModel {
                       child: TextFormField(
                         keyboardType: TextInputType.url,
                         textInputAction: TextInputAction.done,
-                        controller: urlController,
+                        controller: viewModel.urlController,
                         decoration: const InputDecoration(
                           hintText: 'https://exemplo.com/minha-pagina',
                           labelText: 'URL',
@@ -42,7 +77,7 @@ class UrlShortnerView extends UrlShortnerViewModel {
                     RxBuilder(
                       builder:
                           (_) =>
-                              isLoading.value
+                              viewModel.isLoading.value
                                   ? const Padding(
                                     padding: EdgeInsets.only(top: 16.0),
                                     child: SizedBox(
@@ -56,7 +91,7 @@ class UrlShortnerView extends UrlShortnerViewModel {
                                   : Padding(
                                     padding: const EdgeInsets.only(top: 16.0),
                                     child: IconButton(
-                                      onPressed: saveUrl,
+                                      onPressed: viewModel.saveUrl,
                                       icon: Icon(Icons.play_arrow, size: 32),
                                     ),
                                   ),
@@ -72,19 +107,20 @@ class UrlShortnerView extends UrlShortnerViewModel {
                 RxBuilder(
                   builder:
                       (_) =>
-                          isLoading.value
+                          viewModel.isLoading.value
                               ? const Center(child: CircularProgressIndicator())
-                              : urlList.value.isEmpty
+                              : viewModel.urlList.value.isEmpty
                               ? Padding(
                                 padding: const EdgeInsets.only(top: 16.0),
                                 child: const Text('No URLs shortened yet.'),
                               )
                               : Expanded(
                                 child: ListView.separated(
-                                  itemCount: urlList.value.length,
+                                  itemCount: viewModel.urlList.value.length,
                                   separatorBuilder: (_, __) => const Divider(),
                                   itemBuilder: (context, index) {
-                                    final urlEntity = urlList.value[index];
+                                    final urlEntity =
+                                        viewModel.urlList.value[index];
                                     return ListTile(
                                       title: Text(
                                         urlEntity.originalUrl,

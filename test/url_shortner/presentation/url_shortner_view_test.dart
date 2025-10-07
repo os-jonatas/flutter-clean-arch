@@ -1,95 +1,105 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nu_test/core/di/injection.dart';
-import 'package:nu_test/url_shortner/presentation/url_shortner.dart';
+import 'package:get_it/get_it.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:nu_test/url_shortner/domain/entities/url_entity.dart';
+import 'package:nu_test/url_shortner/domain/usecases/get_url_saved_list_usecase.dart';
+import 'package:nu_test/url_shortner/domain/usecases/save_url_usecase.dart';
+import 'package:nu_test/url_shortner/presentation/url_shortner_view.dart';
+import 'package:nu_test/url_shortner/presentation/url_shortner_view_model.dart';
+
+class MockGetUrls extends Mock implements GetUrlSavedListUsecase {}
+
+class MockSaveUrl extends Mock implements SaveUrlUsecase {}
 
 void main() {
-  setUpAll(() async {
-    await setupInjection();
-  });
+  late GetIt getIt;
+  late UrlShortnerViewModel mockViewModel;
 
-  tearDown(() async {
+  setUp(() async {
+    getIt = GetIt.instance;
     await getIt.reset();
+    final mockGetUrls = MockGetUrls();
+    final mockSaveUrl = MockSaveUrl();
+
+    when(() => mockGetUrls()).thenAnswer((_) async => []);
+    when(() => mockSaveUrl.call(any())).thenAnswer((_) async => true);
+
+    mockViewModel = UrlShortnerViewModel(
+      getUrlSavedListUsecase: mockGetUrls,
+      saveUrlUsecase: mockSaveUrl,
+    );
+    getIt.registerSingleton<UrlShortnerViewModel>(mockViewModel);
   });
 
-  group('UrlShortnerView Widget Tests', () {
-    testWidgets('deve renderizar campo de texto e botão', (tester) async {
-      await tester.pumpWidget(MaterialApp(home: UrlShortner()));
-      await tester.pump();
+  tearDown(() async => await getIt.reset());
+
+  group('UrlShortnerView UI Tests', () {
+    testWidgets('should render text field, button and title', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
       expect(find.byType(TextFormField), findsOneWidget);
       expect(find.byIcon(Icons.play_arrow), findsOneWidget);
+      expect(find.text('Recently Shortened URLs'), findsOneWidget);
     });
 
-    // testWidgets('deve mostrar mensagem de erro ao submeter URL inválida', (
-    //   tester,
-    // ) async {
-    //   await tester.pumpWidget(MaterialApp(home: UrlShortner()));
+    testWidgets('should show CircularProgressIndicator when isLoading = true', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-    //   final field = find.byType(TextFormField);
-    //   await tester.enterText(field, 'meusite.com'); // sem http
-    //   await tester.tap(find.byIcon(Icons.play_arrow));
-    //   await tester.pump();
+      mockViewModel.isLoading.value = true;
+      await tester.pump();
 
-    //   expect(find.text('Inclua http:// ou https://'), findsOneWidget);
-    // });
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+    });
 
-    // testWidgets('deve exibir indicador de carregamento quando isLoading=true', (
-    //   tester,
-    // ) async {
-    //   await tester.pumpWidget(const MaterialApp(home: UrlShortner()));
+    testWidgets(
+      'should display "No URLs shortened yet." message when list is empty',
+      (tester) async {
+        await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-    //   // Obtém o estado do widget
-    //   final state =
-    //       tester.state(find.byType(UrlShortnerView)) as UrlShortnerView;
-    //   state.isLoading.value = true;
+        mockViewModel.isLoading.value = false;
+        mockViewModel.urlList.value = [];
+        await tester.pump();
 
-    //   await tester.pump();
+        expect(find.text('No URLs shortened yet.'), findsOneWidget);
+      },
+    );
 
-    //   expect(find.byType(CircularProgressIndicator), findsWidgets);
-    // });
+    testWidgets('should display list of URLs when urlList has items', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-    // testWidgets('deve exibir mensagem de lista vazia quando não há URLs', (
-    //   tester,
-    // ) async {
-    //   await tester.pumpWidget(const MaterialApp(home: UrlShortner()));
+      mockViewModel.isLoading.value = false;
+      mockViewModel.urlList.value = [
+        UrlEntity(
+          originalUrl: 'https://flutter.dev',
+          shortUrl: 'https://sho.rt/a1',
+          alias: 'a1',
+        ),
+        UrlEntity(
+          originalUrl: 'https://dart.dev',
+          shortUrl: 'https://sho.rt/b2',
+          alias: 'b2',
+        ),
+      ];
+      await tester.pump();
 
-    //   final state =
-    //       tester.state(find.byType(UrlShortnerView)) as UrlShortnerView;
-    //   state.isLoading.value = false;
-    //   state.urlList.value = [];
+      expect(find.byType(ListTile), findsNWidgets(2));
+      expect(find.text('https://flutter.dev'), findsOneWidget);
+      expect(find.text('https://dart.dev'), findsOneWidget);
+    });
 
-    //   await tester.pump();
+    testWidgets('must validate invalid URL in text field', (tester) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-    //   expect(find.text('No URLs shortened yet.'), findsOneWidget);
-    // });
+      await tester.enterText(find.byType(TextFormField), 'meusite.com');
+      await tester.tap(find.byIcon(Icons.play_arrow));
+      await tester.pump();
 
-    // testWidgets('deve exibir lista de URLs quando houver dados', (
-    //   tester,
-    // ) async {
-    //   await tester.pumpWidget(const MaterialApp(home: UrlShortner()));
-
-    //   final state =
-    //       tester.state(find.byType(UrlShortnerView)) as UrlShortnerView;
-
-    //   state.isLoading.value = false;
-    //   state.urlList.value = [
-    //     UrlEntity(
-    //       originalUrl: 'https://flutter.dev',
-    //       shortUrl: 'https://sho.rt/a1',
-    //     ),
-    //     UrlEntity(
-    //       originalUrl: 'https://dart.dev',
-    //       shortUrl: 'https://sho.rt/b2',
-    //     ),
-    //   ];
-
-    //   await tester.pumpAndSettle();
-
-    //   expect(find.text('https://flutter.dev'), findsOneWidget);
-    //   expect(find.text('https://sho.rt/a1'), findsOneWidget);
-    //   expect(find.text('https://dart.dev'), findsOneWidget);
-    //   expect(find.text('https://sho.rt/b2'), findsOneWidget);
-    // });
+      expect(find.text('Inclua http:// ou https://'), findsOneWidget);
+    });
   });
 }
