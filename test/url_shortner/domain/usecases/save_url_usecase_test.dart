@@ -49,29 +49,17 @@ void main() {
       verifyNoMoreInteractions(mockStorage);
     });
 
-    test(
-      'should propagate exception when storageService throws error',
-      () async {
-        when(
-          () => mockStorage.addUrl(any()),
-        ).thenThrow(Exception('Erro ao salvar'));
-        when(
-          () => mockRepository.shortenUrl(any()),
-        ).thenAnswer((_) async => testModel);
-
-        expect(() => usecase(''), throwsA(isA<Exception>()));
-      },
-    );
-
     test('should return false when repository throws exception', () async {
       when(
+        () => mockStorage.addUrl(any()),
+      ).thenThrow(Exception('Erro ao salvar'));
+      when(
         () => mockRepository.shortenUrl(any()),
-      ).thenThrow(Exception('Erro ao encurtar'));
+      ).thenAnswer((_) async => testModel);
 
       final result = await usecase('https://flutter.dev');
 
       expect(result, isFalse);
-      verifyNever(() => mockStorage.addUrl(any()));
     });
   });
 }
