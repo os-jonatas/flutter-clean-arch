@@ -23,4 +23,9 @@ class UrlStorageService {
         .map((e) => UrlShortenModel.fromMap(Map<String, dynamic>.from(e)))
         .toList();
   }
+
+  Future<void> clearUrls() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_key);
+  }
 }

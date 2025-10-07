@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nu_test/url_shortner/domain/entities/url_entity.dart';
+import 'package:nu_test/url_shortner/domain/usecases/drop_urls_usecase.dart';
 import 'package:nu_test/url_shortner/domain/usecases/get_url_saved_list_usecase.dart';
 import 'package:nu_test/url_shortner/domain/usecases/save_url_usecase.dart';
 import 'package:nu_test/url_shortner/presentation/url_shortner_view.dart';
@@ -12,24 +13,32 @@ class MockGetUrls extends Mock implements GetUrlSavedListUsecase {}
 
 class MockSaveUrl extends Mock implements SaveUrlUsecase {}
 
+class MockDropUrls extends Mock implements DropUrlsUsecase {}
+
 void main() {
   late GetIt getIt;
-  late UrlShortnerViewModel mockViewModel;
+  late UrlShortnerViewModel viewModel;
+  late MockDropUrls mockDropUrls;
+  late MockGetUrls mockGetUrls;
+  late MockSaveUrl mockSaveUrl;
 
   setUp(() async {
     getIt = GetIt.instance;
     await getIt.reset();
-    final mockGetUrls = MockGetUrls();
-    final mockSaveUrl = MockSaveUrl();
+    mockGetUrls = MockGetUrls();
+    mockSaveUrl = MockSaveUrl();
+    mockDropUrls = MockDropUrls();
 
     when(() => mockGetUrls()).thenAnswer((_) async => []);
     when(() => mockSaveUrl.call(any())).thenAnswer((_) async => true);
+    when(() => mockDropUrls()).thenAnswer((_) async => {});
 
-    mockViewModel = UrlShortnerViewModel(
+    viewModel = UrlShortnerViewModel(
       getUrlSavedListUsecase: mockGetUrls,
       saveUrlUsecase: mockSaveUrl,
+      dropUrlsUsecase: mockDropUrls,
     );
-    getIt.registerSingleton<UrlShortnerViewModel>(mockViewModel);
+    getIt.registerSingleton<UrlShortnerViewModel>(viewModel);
   });
 
   tearDown(() async => await getIt.reset());
@@ -48,7 +57,7 @@ void main() {
     ) async {
       await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-      mockViewModel.isLoading.value = true;
+      viewModel.isLoading.value = true;
       await tester.pump();
 
       expect(find.byType(CircularProgressIndicator), findsWidgets);
@@ -59,8 +68,8 @@ void main() {
       (tester) async {
         await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-        mockViewModel.isLoading.value = false;
-        mockViewModel.urlList.value = [];
+        viewModel.isLoading.value = false;
+        viewModel.urlList.value = [];
         await tester.pump();
 
         expect(find.text('No URLs shortened yet.'), findsOneWidget);
@@ -72,8 +81,8 @@ void main() {
     ) async {
       await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
 
-      mockViewModel.isLoading.value = false;
-      mockViewModel.urlList.value = [
+      viewModel.isLoading.value = false;
+      viewModel.urlList.value = [
         UrlEntity(
           originalUrl: 'https://flutter.dev',
           shortUrl: 'https://sho.rt/a1',
@@ -100,6 +109,88 @@ void main() {
       await tester.pump();
 
       expect(find.text('Inclua http:// ou https://'), findsOneWidget);
+    });
+
+    testWidgets('should display delete icon if urls list is not empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
+
+      viewModel.isLoading.value = false;
+      viewModel.urlList.value = [
+        UrlEntity(
+          originalUrl: 'https://flutter.dev',
+          shortUrl: 'https://sho.rt/a1',
+          alias: 'a1',
+        ),
+      ];
+      await tester.pump();
+
+      expect(find.byIcon(Icons.delete_outline), findsOneWidget);
+    });
+
+    testWidgets('should not display delete icon if urls list is empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
+
+      viewModel.isLoading.value = false;
+      viewModel.urlList.value = [];
+      await tester.pump();
+
+      expect(find.byIcon(Icons.delete_outline), findsNothing);
+    });
+
+    testWidgets('should call dropUrls when delete icon is tapped', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
+
+      viewModel.isLoading.value = false;
+      viewModel.urlList.value = [
+        UrlEntity(
+          originalUrl: 'https://flutter.dev',
+          shortUrl: 'https://sho.rt/a1',
+          alias: 'a1',
+        ),
+      ];
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+
+      verify(() => mockDropUrls.call()).called(1);
+    });
+
+    testWidgets('shoudl display AlertDiolog when delete icon is tapped', (
+      tester,
+    ) async {
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
+
+      viewModel.isLoading.value = false;
+      viewModel.urlList.value = [
+        UrlEntity(
+          originalUrl: 'https://flutter.dev',
+          shortUrl: 'https://sho.rt/a1',
+          alias: 'a1',
+        ),
+      ];
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Confirm deletion'), findsOneWidget);
+      expect(
+        find.text('Are you sure you want to delete all saved URLs?'),
+        findsOneWidget,
+      );
+      expect(find.text('Cancel'), findsOneWidget);
+      expect(find.text('Remove'), findsOneWidget);
     });
   });
 }

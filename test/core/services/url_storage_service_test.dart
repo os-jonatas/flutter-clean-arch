@@ -77,5 +77,21 @@ void main() {
       expect(decoded, isA<List>());
       expect(decoded.first['alias'], 'json1');
     });
+
+    test('must clear all saved URLs', () async {
+      final model = UrlShortenModel(
+        alias: 'toClear',
+        originalUrl: 'https://clear.me',
+        shortUrl: 'https://sho.rt/toClear',
+      );
+
+      await storageService.addUrl(model);
+      var urls = await storageService.getUrls();
+      expect(urls, isNotEmpty);
+
+      await storageService.clearUrls();
+      urls = await storageService.getUrls();
+      expect(urls, isEmpty);
+    });
   });
 }
