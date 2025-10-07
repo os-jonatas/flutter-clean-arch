@@ -192,5 +192,25 @@ void main() {
       expect(find.text('Cancel'), findsOneWidget);
       expect(find.text('Remove'), findsOneWidget);
     });
+
+    testWidgets('should render error message when save url returns false', (
+      tester,
+    ) async {
+      when(
+        () => mockSaveUrl.call('https://flutter.dev'),
+      ).thenAnswer((_) async => false);
+
+      await tester.pumpWidget(const MaterialApp(home: UrlShortnerView()));
+
+      await tester.enterText(find.byType(TextFormField), 'https://flutter.dev');
+      await tester.tap(find.byIcon(Icons.play_arrow));
+
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Failed to shorten URL. Please try again.'),
+        findsOneWidget,
+      );
+    });
   });
 }

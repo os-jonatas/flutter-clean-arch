@@ -12,7 +12,7 @@ class SaveUrlUsecase {
       await storageService.addUrl(result);
       return true;
     } on Exception catch (_) {
-      rethrow;
+      return false;
     }
   }
 }

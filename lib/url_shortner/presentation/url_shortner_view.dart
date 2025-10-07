@@ -121,10 +121,22 @@ class _UrlShortnerViewState extends State<UrlShortnerView> {
                                   : Padding(
                                     padding: const EdgeInsets.only(top: 16.0),
                                     child: IconButton(
-                                      onPressed: () {
+                                      onPressed: () async {
                                         if (viewModel.formKey.currentState!
                                             .validate()) {
-                                          viewModel.saveUrl();
+                                          final success =
+                                              await viewModel.saveUrl();
+                                          if (!success && context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Failed to shorten URL. Please try again.',
+                                                ),
+                                              ),
+                                            );
+                                          }
                                         }
                                       },
                                       icon: Icon(Icons.play_arrow, size: 32),

@@ -93,5 +93,18 @@ void main() {
       urls = await storageService.getUrls();
       expect(urls, isEmpty);
     });
+
+    test('should throw exception when adding invalid URL', () async {
+      final invalidModel = UrlShortenModel(
+        alias: 'invalid',
+        originalUrl: '',
+        shortUrl: '',
+      );
+
+      expect(
+        () async => await storageService.addUrl(invalidModel),
+        throwsA(isA<Exception>()),
+      );
+    });
   });
 }

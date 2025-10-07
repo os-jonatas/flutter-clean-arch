@@ -62,5 +62,16 @@ void main() {
         expect(() => usecase(''), throwsA(isA<Exception>()));
       },
     );
+
+    test('should return false when repository throws exception', () async {
+      when(
+        () => mockRepository.shortenUrl(any()),
+      ).thenThrow(Exception('Erro ao encurtar'));
+
+      final result = await usecase('https://flutter.dev');
+
+      expect(result, isFalse);
+      verifyNever(() => mockStorage.addUrl(any()));
+    });
   });
 }

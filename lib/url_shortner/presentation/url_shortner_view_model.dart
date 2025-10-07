@@ -29,7 +29,7 @@ class UrlShortnerViewModel {
     isLoading.value = false;
   }
 
-  Future<void> saveUrl() async {
+  Future<bool> saveUrl() async {
     isLoading.value = true;
     final url = urlController.text.trim();
     final success = await saveUrlUsecase.call(url);
@@ -37,9 +37,12 @@ class UrlShortnerViewModel {
     if (success) {
       urlController.clear();
       await fetchSavedUrls();
+      isLoading.value = false;
+      return true;
+    } else {
+      isLoading.value = false;
+      return false;
     }
-
-    isLoading.value = false;
   }
 
   Future<void> dropUrls() async {

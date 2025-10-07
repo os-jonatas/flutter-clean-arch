@@ -7,6 +7,9 @@ class UrlStorageService {
   static const _key = 'shortened_urls';
 
   Future<void> addUrl(UrlShortenModel url) async {
+    if (url.originalUrl.isEmpty || url.shortUrl.isEmpty) {
+      throw Exception('Invalid URL');
+    }
     final prefs = await SharedPreferences.getInstance();
     final currentUrls = await getUrls();
     currentUrls.add(url);
