@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:nu_test/core/services/url_storage_service.dart';
+import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
 import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
 import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
 import 'package:nu_test/url_shortner/domain/usecases/save_url_usecase.dart';
 
-class MockUrlStorageService extends Mock implements UrlStorageService {}
+class MockUrlStorageService extends Mock implements UrlLocalDataSource {}
 
 class MockUrlShortnerRepository extends Mock implements UrlShortnerRepository {}
 

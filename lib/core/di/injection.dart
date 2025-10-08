@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:nu_test/core/api/client.dart';
-import 'package:nu_test/core/services/url_storage_service.dart';
+import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
 import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
 import 'package:nu_test/url_shortner/domain/usecases/drop_urls_usecase.dart';
 import 'package:nu_test/url_shortner/domain/usecases/get_url_saved_list_usecase.dart';
@@ -24,20 +24,20 @@ Future<void> setupInjection() async {
   getIt.registerSingleton<UrlShortnerRepository>(
     UrlShortnerRepository(client: getIt<Client>()),
   );
-  getIt.registerLazySingleton<UrlStorageService>(() => UrlStorageService());
+  getIt.registerLazySingleton<UrlLocalDataSource>(() => UrlLocalDataSource());
 
   getIt.registerFactory<SaveUrlUsecase>(
     () => SaveUrlUsecase(
-      storageService: getIt<UrlStorageService>(),
+      storageService: getIt<UrlLocalDataSource>(),
       repository: getIt<UrlShortnerRepository>(),
     ),
   );
   getIt.registerFactory<GetUrlSavedListUsecase>(
-    () => GetUrlSavedListUsecase(getIt<UrlStorageService>()),
+    () => GetUrlSavedListUsecase(getIt<UrlLocalDataSource>()),
   );
 
   getIt.registerFactory<DropUrlsUsecase>(
-    () => DropUrlsUsecase(getIt<UrlStorageService>()),
+    () => DropUrlsUsecase(getIt<UrlLocalDataSource>()),
   );
 
   getIt.registerFactory<UrlShortnerViewModel>(

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class UrlStorageService {
+class UrlLocalDataSource {
   static const _key = 'shortened_urls';
 
   Future<void> addUrl(UrlShortenModel url) async {

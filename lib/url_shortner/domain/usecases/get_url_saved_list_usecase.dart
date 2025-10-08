@@ -1,8 +1,8 @@
-import 'package:nu_test/core/services/url_storage_service.dart';
+import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
 import 'package:nu_test/url_shortner/domain/entities/url_entity.dart';
 
 class GetUrlSavedListUsecase {
-  final UrlStorageService storageService;
+  final UrlLocalDataSource storageService;
 
   GetUrlSavedListUsecase(this.storageService);
 
