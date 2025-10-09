@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:nu_test/core/api/i_http_client.dart';
+import 'package:nu_test/core/services/api/i_http_client.dart';
 
 class Service implements IHttpClient {
   final Dio dio;

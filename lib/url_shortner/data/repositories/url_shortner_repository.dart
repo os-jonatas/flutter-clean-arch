@@ -1,11 +1,11 @@
-import 'package:nu_test/core/api/i_http_client.dart';
+import 'package:nu_test/core/services/api/i_http_client.dart';
 import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
-import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+import 'package:nu_test/core/services/local/url_local_data_service.dart';
 import 'package:nu_test/url_shortner/domain/entities/url_entity.dart';
 
 class UrlShortnerRepository {
   final IHttpClient client;
-  final UrlLocalDataSource localStorage;
+  final UrlLocalDataService localStorage;
 
   UrlShortnerRepository({required this.client, required this.localStorage});
 

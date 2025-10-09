@@ -1,13 +1,15 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class UrlLocalDataSource {
+class UrlLocalDataService {
   static const _key = 'shortened_urls';
 
   Future<void> addUrl(UrlShortenModel url) async {
     if (url.originalUrl.isEmpty || url.shortUrl.isEmpty) {
+      debugPrint('Erro ao salvar URL localmente: URL vazia');
       throw Exception('Invalid URL');
     }
     final prefs = await SharedPreferences.getInstance();

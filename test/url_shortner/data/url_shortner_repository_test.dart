@@ -2,12 +2,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:nu_test/core/api/service.dart';
+import 'package:nu_test/core/services/api/service.dart';
 import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
 import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
-import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+import 'package:nu_test/core/services/local/url_local_data_service.dart';
 
-class MockUrlLocalDataSource extends Mock implements UrlLocalDataSource {}
+class MockUrlLocalDataSource extends Mock implements UrlLocalDataService {}
 
 void main() {
   late Service mockClient;

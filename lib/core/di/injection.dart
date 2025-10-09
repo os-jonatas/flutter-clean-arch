@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-import 'package:nu_test/core/api/service.dart';
-import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+import 'package:nu_test/core/services/api/service.dart';
+import 'package:nu_test/core/services/local/url_local_data_service.dart';
 import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
 import 'package:nu_test/url_shortner/domain/usecases/drop_urls_usecase.dart';
 import 'package:nu_test/url_shortner/domain/usecases/get_url_saved_list_usecase.dart';
@@ -21,12 +21,12 @@ Future<void> setupInjection() async {
     );
   });
   getIt.registerSingleton<Service>(Service(dio: getIt<Dio>()));
-  getIt.registerLazySingleton<UrlLocalDataSource>(() => UrlLocalDataSource());
+  getIt.registerLazySingleton<UrlLocalDataService>(() => UrlLocalDataService());
 
   getIt.registerSingleton<UrlShortnerRepository>(
     UrlShortnerRepository(
       client: getIt<Service>(),
-      localStorage: getIt<UrlLocalDataSource>(),
+      localStorage: getIt<UrlLocalDataService>(),
     ),
   );
 

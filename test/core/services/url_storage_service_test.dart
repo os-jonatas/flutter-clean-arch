@@ -1,17 +1,17 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+import 'package:nu_test/core/services/local/url_local_data_service.dart';
 import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late UrlLocalDataSource storageService;
+  late UrlLocalDataService storageService;
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
-    storageService = UrlLocalDataSource();
+    storageService = UrlLocalDataService();
   });
 
   group('UrlStorageService', () {
