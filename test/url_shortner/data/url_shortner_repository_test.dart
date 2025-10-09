@@ -1,25 +1,43 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:nu_test/core/api/client.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:nu_test/core/api/service.dart';
+import 'package:nu_test/url_shortner/data/models/url_shorten_model.dart';
 import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
+import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+
+class MockUrlLocalDataSource extends Mock implements UrlLocalDataSource {}
 
 void main() {
-  late Client mockClient;
+  late Service mockClient;
   late Dio dio;
   late DioAdapter dioAdapter;
+  late MockUrlLocalDataSource mockLocalStorage;
 
   late UrlShortnerRepository repository;
+
+  setUpAll(() {
+    registerFallbackValue(UrlShortenModel());
+  });
 
   setUp(() {
     dio = Dio(BaseOptions(baseUrl: 'https://api.short.io'));
     dioAdapter = DioAdapter(dio: dio);
-    mockClient = Client(dio: dio);
-    repository = UrlShortnerRepository(client: mockClient);
+    mockClient = Service(dio: dio);
+    mockLocalStorage = MockUrlLocalDataSource();
+    repository = UrlShortnerRepository(
+      client: mockClient,
+      localStorage: mockLocalStorage,
+    );
   });
 
   group('UrlShortnerRepository', () {
     test('must return true when api have success', () async {
+      when(
+        () => mockLocalStorage.addUrl(any()),
+      ).thenAnswer((_) async => Future.value());
+
       const url = 'https://exemple.dev';
       const fakeResponse = {
         "alias": "1110289033",
@@ -35,11 +53,9 @@ void main() {
         (server) => server.reply(201, fakeResponse),
       );
 
-      final result = await repository.shortenUrl(url);
+      await repository.shortenUrl(url);
 
-      expect(result.originalUrl, equals('https://exemple.dev'));
-      expect(result.shortUrl, equals('https://sho.rt/e.dev'));
-      expect(result.alias, equals('1110289033'));
+      verify(() => mockLocalStorage.addUrl(any())).called(1);
     });
 
     test('must return false when api have error', () async {
@@ -51,10 +67,8 @@ void main() {
         (server) => server.reply(400, {}),
       );
 
-      final result = await repository.shortenUrl(url);
-
-      expect(result.originalUrl, isEmpty);
-      expect(result.shortUrl, isEmpty);
+      expect(() => repository.shortenUrl(url), throwsA(isA<Exception>()));
+      verifyNever(() => mockLocalStorage.addUrl(any()));
     });
 
     test('must return original url when api have success', () async {

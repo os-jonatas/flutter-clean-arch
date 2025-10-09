@@ -1,26 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
 import 'package:nu_test/url_shortner/domain/usecases/drop_urls_usecase.dart';
 
-class MockUrlStorageService extends Mock implements UrlLocalDataSource {}
+class MockUrlRepository extends Mock implements UrlShortnerRepository {}
 
 void main() {
   late DropUrlsUsecase usecase;
-  late MockUrlStorageService mockStorage;
+  late MockUrlRepository repository;
 
   setUp(() {
-    mockStorage = MockUrlStorageService();
-    usecase = DropUrlsUsecase(mockStorage);
+    repository = MockUrlRepository();
+    usecase = DropUrlsUsecase(repository);
   });
 
   group('DropUrlsUsecase test', () {
     test('should call storageService.clearUrls()', () async {
-      when(() => mockStorage.clearUrls()).thenAnswer((_) async {});
+      when(() => repository.clearStoredUrls()).thenAnswer((_) async {});
 
       await usecase();
 
-      verify(() => mockStorage.clearUrls()).called(1);
+      verify(() => repository.clearStoredUrls()).called(1);
     });
   });
 }

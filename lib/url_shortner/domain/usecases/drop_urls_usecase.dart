@@ -1,9 +1,9 @@
-import 'package:nu_test/url_shortner/data/storage/url_local_data_source.dart';
+import 'package:nu_test/url_shortner/data/repositories/url_shortner_repository.dart';
 
 class DropUrlsUsecase {
-  final UrlLocalDataSource storageService;
-  DropUrlsUsecase(this.storageService);
+  final UrlShortnerRepository repository;
+  DropUrlsUsecase(this.repository);
   Future<void> call() async {
-    await storageService.clearUrls();
+    await repository.clearStoredUrls();
   }
 }

@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:nu_test/core/api/i_http_client.dart';
 
-class Client implements IHttpClient {
+class Service implements IHttpClient {
   final Dio dio;
 
-  Client({required this.dio});
+  Service({required this.dio});
 
   @override
   Future<Response> get(String path) async {
